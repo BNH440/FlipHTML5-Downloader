@@ -1,3 +1,6 @@
+
+
+
 import requests
 import json
 import os
@@ -5,7 +8,7 @@ import random
 import threading
 from PIL import Image
 from io import BytesIO
-from tqdm import tqdm  
+from tqdm import tqdm
 import re
 from PyPDF2 import PdfMerger
 from fpdf import FPDF
@@ -20,6 +23,7 @@ end = input("Enter the end page number (leave empty for default: last page): ")
 folderName = input("Enter folder name for saving (leave empty to use Book ID): ") or bookID.replace("/", "-")
 pdfName = input("Enter PDF filename (leave empty for default): ") or f"{folderName}.pdf"
 skipExisting = input("Skip existing files? (y/n): ").lower() == 'y'
+
 
 # Set default values if start or end are empty
 start = int(start) if start else 1
@@ -37,7 +41,7 @@ useragents = [
 
 # Fetch configuration from a remote URL
 def fetch_config():
-    config_url = f"https://online.fliphtml5.com/{bookID}/javascript/config.js?1"
+    config_url = f"https://online.fliphtml5.com/okyip/cpcr/javascript/config.js?{bookID}"
     headers = {'User-Agent': random.choice(useragents)}
     try:
         r = requests.get(config_url, headers=headers, timeout=50)
@@ -64,9 +68,9 @@ def clean_taskID(taskID):
 # Function to download a single image
 def download_image(taskID):
     taskID = clean_taskID(taskID)  # Clean the taskID
-    for ext in ['webp', 'jpg']:  # Try webp first, then jpg
+    for ext in ['jpg', 'webp' ]:  # Try webp first, then jpg
         filepath = f"{folderName}/{taskID}.{ext}"
-        URL = f"https://online.fliphtml5.com/{bookID}/files/large/{taskID}.{ext}"
+        URL = f"https://online.fliphtml5.com/okyip/cpcr/files/large/{taskID}.{ext}"
         headers = {'User-Agent': random.choice(useragents)}
 
         try:
@@ -159,16 +163,32 @@ def images_to_pdf(folder, pdf_filename="output.pdf"):
     # Generate PDF files in chunks
     chunk_size = 50
     num_chunks = (len(image_list) // chunk_size) + 1
+
+    image_path = image_list[0]
+    width_pt, height_pt = 595, 842 #Default A4 dimensions in case of error with the first image
+
+    with Image.open(image_path) as img:
+            # Get image dimensions in points (1 inch = 72 points)
+            width, height = img.size
+            width_pt, height_pt = width * 72 / img.info.get("dpi", (72, 72))[0], height * 72 / img.info.get("dpi", (72, 72))[1]
+
+
+    
     for i in range(num_chunks):
         chunk_filename = f"{folder}/chunk_{i+1}.pdf"
         pdf_files.append(chunk_filename)
 
-        pdf = FPDF()
+       
+        pdf = FPDF(unit="pt", format=(width_pt, height_pt))  # Use points as the unit for precise sizing
         start_index = i * chunk_size
         end_index = min((i + 1) * chunk_size, len(image_list))
+
         for image_path in image_list[start_index:end_index]:
-            pdf.add_page()
-            pdf.image(image_path, 0, 0, 210, 297)  # Place on A4-sized paper
+                
+                # Add a new page with the image's dimensions
+                pdf.add_page() #Fails with format argument, otherwise get dimensions here
+                pdf.image(image_path, 0,0) # 0,0 To place in top corner, dimensions are auto
+                
 
         pdf.output(chunk_filename)
         print(f"[+] PDF chunk created: {chunk_filename}")
@@ -186,6 +206,7 @@ def images_to_pdf(folder, pdf_filename="output.pdf"):
         os.remove(pdf_file)
 
     print(f"[+] Final PDF created: {pdf_filename}")
+
 
 # Start downloading images
 download_images_concurrently(start, end)

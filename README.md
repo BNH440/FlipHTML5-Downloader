@@ -22,6 +22,12 @@ To use this tool, you need to install the required Python libraries. You can do 
 pip install requests pillow tqdm PyPDF2 fpdf
 ```
 
+or
+
+```sh
+pip install -r requirements.txt
+```
+
 ## Usage
 
 1. **Download the Script**: Clone this repository or download the script file.
@@ -51,7 +57,7 @@ You can also use this code on [Google Colab](https://colab.research.google.com/g
 
 ## Contributing
 
-Contributions to this project are welcome! If you have any suggestions or improvements, please fork the repository and submit a pull request. 
+Contributions to this project are welcome! If you have any suggestions or improvements, please fork the repository and submit a pull request.
 
 ## 🚀 Upcoming Features & Enhancements
 
@@ -70,7 +76,7 @@ Contributions to this project are welcome! If you have any suggestions or improv
   - Simplified CLI with presets for common settings.
   - Better error handling with automatic retries.
   - Detailed logging and progress bars for PDF generation.
-  
+
 - **Advanced Error Handling**
   - Retry logic for network issues.
   - Detection and exclusion of corrupt images during PDF creation.
